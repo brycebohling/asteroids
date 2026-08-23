@@ -1,4 +1,5 @@
 import { Scene } from "phaser";
+import Phaser from "phaser";
 
 export class Game extends Scene {
     // Input
@@ -8,15 +9,20 @@ export class Game extends Scene {
     shipMaxSpeed = 300;
     shipDrag = 30;
     // Bullet
+    bullets: Phaser.Physics.Arcade.Group;
     fireRate = 250;
     bulletSpeed = 400;
     lastFiredTime: number = 0;
+    // Asteroids
+    asteroids: Phaser.Physics.Arcade.Group;
 
     constructor() {
         super("Game");
     }
 
     create() {
+        this.cursors = this.input.keyboard!.createCursorKeys();
+
         this.ship = this.add.image(512, 384, "ship") as any;
 
         this.physics.add.existing(this.ship);
@@ -24,7 +30,17 @@ export class Game extends Scene {
         this.ship.body.setMaxSpeed(this.shipMaxSpeed);
         this.ship.body.setDrag(this.shipDrag);
 
-        this.cursors = this.input.keyboard!.createCursorKeys();
+        this.bullets = this.physics.add.group();
+        this.asteroids = this.physics.add.group();
+
+        // Spawn initial wave
+        this.spawnWave(4); // start with 4 asteroids
+
+        // Bullet hits asteroid
+        this.physics.add.overlap(this.asteroids, this.bullets, this.hitAsteroid, undefined, this);
+
+        // Ship hits asteroid
+        this.physics.add.overlap(this.ship, this.asteroids, this.shipHit, undefined, this);
     }
 
     update(time: number, delta: number) {
@@ -65,13 +81,78 @@ export class Game extends Scene {
     fire() {
         const bullet = this.add.circle(this.ship.x, this.ship.y, 3, 0xffffff);
         this.physics.add.existing(bullet);
+        this.bullets.add(bullet);
+
         const body = bullet.body as Phaser.Physics.Arcade.Body;
         this.physics.velocityFromRotation(this.ship.rotation - Math.PI / 2, this.bulletSpeed, body.velocity);
 
-        this.physics.world.on("worldbounds", (body: Phaser.Physics.Arcade.Body) => {
-            if (body.gameObject === bullet) {
-                bullet.destroy();
-            }
-        });
+        // Destroy after 2 seconds so offscreen bullets don't leak
+        this.time.delayedCall(2000, () => bullet.destroy());
+    }
+
+    spawnAsteroid(x: number, y: number, size: number) {
+        // size: 3 = large, 2 = medium, 1 = small
+        const radius = size * 15; // 45px, 30px, 15px
+
+        const asteroid = this.add.circle(x, y, radius, 0x888888);
+        asteroid.setStrokeStyle(2, 0xffffff); // outline like classic asteroids
+        this.physics.add.existing(asteroid);
+
+        const body = asteroid.body as Phaser.Physics.Arcade.Body;
+        body.setCircle(radius);
+
+        // Random direction + speed (smaller = faster, like the original)
+        const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+        const speed = Phaser.Math.Between(50, 150) / size;
+        this.physics.velocityFromRotation(angle, speed, body.velocity);
+
+        // Store the size so we know how to split it
+        asteroid.setData("size", size);
+
+        this.asteroids.add(asteroid);
+        return asteroid;
+    }
+
+    spawnWave(count: number) {
+        for (let i = 0; i < count; i++) {
+            // Spawn at random edge positions (not on top of the player)
+            const edge = Phaser.Math.Between(0, 3);
+            let x = 0,
+                y = 0;
+            if (edge === 0) {
+                x = 0;
+                y = Phaser.Math.Between(0, 768);
+            } // left
+            else if (edge === 1) {
+                x = 1024;
+                y = Phaser.Math.Between(0, 768);
+            } // right
+            else if (edge === 2) {
+                x = Phaser.Math.Between(0, 1024);
+                y = 0;
+            } // top
+            else {
+                x = Phaser.Math.Between(0, 1024);
+                y = 768;
+            } // bottom
+
+            this.spawnAsteroid(x, y, 3); // all start large
+        }
+    }
+
+    hitAsteroid(asteroid: any, bullet: any) {
+        const size = asteroid.getData("size");
+
+        if (size > 1) {
+            this.spawnAsteroid(asteroid.x, asteroid.y, size - 1);
+            this.spawnAsteroid(asteroid.x, asteroid.y, size - 1);
+        }
+
+        asteroid.destroy();
+        bullet.destroy();
+    }
+
+    shipHit(ship: any, asteroid: any) {
+        this.scene.start("GameOver");
     }
 }
