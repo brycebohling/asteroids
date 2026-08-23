@@ -11,6 +11,9 @@ export class Boot extends Scene {
 
         this.load.image("background", "assets/bg.png");
         this.load.svg("ship", "assets/ship.svg", { width: 60, height: 45 });
+        this.load.svg("asteroid0", "assets/asteroid0.svg", { width: 30, height: 30 });
+        this.load.svg("asteroid1", "assets/asteroid1.svg", { width: 60, height: 60 });
+        this.load.svg("asteroid2", "assets/asteroid2.svg", { width: 90, height: 90 });
     }
 
     create() {

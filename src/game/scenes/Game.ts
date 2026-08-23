@@ -94,8 +94,11 @@ export class Game extends Scene {
         // size: 3 = large, 2 = medium, 1 = small
         const radius = size * 15; // 45px, 30px, 15px
 
-        const asteroid = this.add.circle(x, y, radius, 0x888888);
-        asteroid.setStrokeStyle(2, 0xffffff); // outline like classic asteroids
+        const asteroidSprites = ["asteroid0", "asteroid1", "asteroid2"];
+
+        // const asteroid = this.add.circle(x, y, radius, 0x888888);
+        const asteroid = this.add.image(x, y, asteroidSprites[size - 1]);
+        // asteroid.setStrokeStyle(2, 0xffffff); // outline like classic asteroids
         this.physics.add.existing(asteroid);
 
         this.asteroids.add(asteroid);

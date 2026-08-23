@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Adobe Illustrator 24.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 522 486" style="enable-background:new 0 0 522 486;" xml:space="preserve">
+<style type="text/css">
+	.st0{display:none;}
+	.st1{display:inline;fill:#FFFFFF;stroke:#000000;stroke-miterlimit:10;}
+	.st2{display:inline;}
+	.st3{fill:#FFFFFF;stroke:#000000;stroke-miterlimit:10;}
+	.st4{display:inline;fill:#FFFFFF;stroke:#C1272D;stroke-width:6;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st5{display:inline;fill:#FFFFFF;stroke:#C1272D;stroke-width:4;stroke-miterlimit:10;}
+	.st6{fill:#FFFF00;stroke:#C1272D;stroke-width:4;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st7{fill:#FFFFFF;stroke:#C1272D;stroke-width:6;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st8{fill:#FFFFFF;stroke:#C1272D;stroke-width:4;stroke-miterlimit:10;}
+	.st9{fill:#FFFFFF;stroke:#BAADAD;stroke-width:20;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st10{fill:#FFFFFF;stroke:#BAADAD;stroke-width:12;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st11{fill:#E0F2FF;stroke:#3578AB;stroke-width:6;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st12{fill:#FFFFFF;stroke:#3578AB;stroke-width:6;stroke-linejoin:round;stroke-miterlimit:10;}
+</style>
+<g id="Ship" class="st0">
+	<g id="dual" class="st2">
+	</g>
+	<g id="rear" class="st2">
+	</g>
+</g>
+<g id="Ship_2" class="st0">
+</g>
+<g id="Ship_3">
+	<g id="Layer_6">
+	</g>
+	<g id="Layer_6_copy">
+	</g>
+</g>
+<g id="Asteroid">
+	<path class="st9" d="M361.92,469.96c4.16-6.04,8.46-12.23,14.53-16.34c8.94-6.06,18.44,0.18,28.55-3.62
+		c41.49-15.61,52.59-84.23,94.34-99.13c-17.86-26.21-23.7-58.53-29.11-89.78c-4.38-25.25-8.77-50.67-8.61-76.3
+		c0.32-53.52,19.1-112.69-10.94-156.99c-2.68-3.96-5.85-7.8-10.12-9.95c-4.74-2.38-10.3-2.42-15.59-2
+		c-35.83,2.88-70.09,24.43-105.48,18.15c-22.83-4.05-43.41-19.5-66.58-18.65C224.4,16.41,194.6,41.6,169.05,27.8
+		c0-0.35,0-0.71,5.11-3.52C120.99,15.21,136.79,45.18,90,72c-9.69,5.56-51.1-1.79-54,9c-0.42,1.56-36.5,22.92,9,54
+		c32.14,21.96,101.27,25.49,126,54c0,0,6.82,99.95,54,171c22.37,33.69,71.88,26.06,99,45C354.07,425.99,360.76,471.66,361.92,469.96
+		z"/>
+	<circle class="st10" cx="315" cy="225" r="45"/>
+</g>
+<g id="Ship_4">
+</g>
+</svg>
