@@ -98,6 +98,8 @@ export class Game extends Scene {
         asteroid.setStrokeStyle(2, 0xffffff); // outline like classic asteroids
         this.physics.add.existing(asteroid);
 
+        this.asteroids.add(asteroid);
+
         const body = asteroid.body as Phaser.Physics.Arcade.Body;
         body.setCircle(radius);
 
@@ -108,8 +110,6 @@ export class Game extends Scene {
 
         // Store the size so we know how to split it
         asteroid.setData("size", size);
-
-        this.asteroids.add(asteroid);
         return asteroid;
     }
 
