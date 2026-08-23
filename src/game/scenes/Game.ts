@@ -1,7 +1,7 @@
 import { Scene } from "phaser";
 
 export class Game extends Scene {
-    ship: Phaser.GameObjects.Triangle & { body: Phaser.Physics.Arcade.Body };
+    ship: Phaser.GameObjects.Image & { body: Phaser.Physics.Arcade.Body };
     cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 
     constructor() {
@@ -9,7 +9,7 @@ export class Game extends Scene {
     }
 
     create() {
-        this.ship = this.add.triangle(512, 384, 0, 20, 20, 20, 10, 0, 0xb8b8b8) as any;
+        this.ship = this.add.image(512, 384, "ship") as any;
 
         this.physics.add.existing(this.ship);
 
