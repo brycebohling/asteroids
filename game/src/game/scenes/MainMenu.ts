@@ -18,7 +18,7 @@ import {
     shipMark,
     starfield,
 } from "../ui/theme";
-import { highScore, lastRun, leaderboard } from "../scores";
+import { ScoreEntry, cachedHighScore, cachedLeaderboard, fetchLeaderboard, lastRun } from "../scores";
 
 const ROW_WIDTH = 420;
 const ROW_HEIGHT = 62;
@@ -42,6 +42,9 @@ export class MainMenu extends Scene {
     rows: MenuRow[] = [];
     selected = 0;
     overlay: Phaser.GameObjects.Container | null = null;
+    overlayKind: MenuAction | null = null;
+    highScoreText: Phaser.GameObjects.Text;
+    highScoreByline: Phaser.GameObjects.Text;
 
     constructor() {
         super("MainMenu");
@@ -53,6 +56,7 @@ export class MainMenu extends Scene {
         this.rows = [];
         this.selected = 0;
         this.overlay = null;
+        this.overlayKind = null;
 
         this.cameras.main.setBackgroundColor(COLOR.space);
 
@@ -67,6 +71,14 @@ export class MainMenu extends Scene {
 
         this.select(0);
         this.bindKeys();
+
+        //  The cached board painted above is whatever we last saw; ask the
+        //  server for the current one and repaint if it answers.
+        void fetchLeaderboard(10).then((entries) => {
+            if (entries && this.scene.isActive()) {
+                this.applyBoard(entries);
+            }
+        });
     }
 
     buildTitle() {
@@ -116,11 +128,14 @@ export class MainMenu extends Scene {
 
     buildRecords() {
         const right = WIDTH - 96;
-        const best = highScore();
+        const best = cachedHighScore();
 
         mono(this, right, 150, "HIGH SCORE", { size: 11, tracking: 2.2, color: ink(0.38) }).setOrigin(1, 0);
-        mono(this, right, 172, formatScore(best?.score ?? 0), { size: 44, weight: 300 }).setOrigin(1, 0);
-        mono(
+        this.highScoreText = mono(this, right, 172, formatScore(best?.score ?? 0), {
+            size: 44,
+            weight: 300,
+        }).setOrigin(1, 0);
+        this.highScoreByline = mono(
             this,
             right,
             232,
@@ -138,6 +153,30 @@ export class MainMenu extends Scene {
         keyHints(this, LEFT, HEIGHT - 63, ["↑ ↓  NAVIGATE", "ENTER  SELECT"], 0.3);
 
         mono(this, WIDTH - 96, HEIGHT - 63, "v0.1.0", { size: 11, tracking: 2, color: ink(0.3) }).setOrigin(1, 0);
+    }
+
+    /** Repaints the records column, and the leaderboard panel if it's open. */
+    applyBoard(entries: ScoreEntry[]) {
+        const best = entries[0];
+
+        this.highScoreText.setText(formatScore(best?.score ?? 0));
+        this.highScoreByline.setText(best ? `${best.initials} · WAVE ${formatWave(best.wave)}` : "NO RUNS YET");
+
+        if (this.overlayKind === "leaderboard") {
+            this.openOverlay("LEADERBOARD", this.boardLines(entries));
+            this.overlayKind = "leaderboard";
+        }
+    }
+
+    boardLines(entries: ScoreEntry[]) {
+        if (!entries.length) {
+            return ["NO RUNS RECORDED YET."];
+        }
+
+        return entries.map(
+            (entry, i) =>
+                `${`${i + 1}`.padStart(2, " ")}   ${entry.initials}   ${formatScore(entry.score).padStart(9, " ")}   WAVE ${formatWave(entry.wave)}`
+        );
     }
 
     bindKeys() {
@@ -209,17 +248,19 @@ export class MainMenu extends Scene {
         }
 
         if (action === "leaderboard") {
-            const board = leaderboard();
+            const cached = cachedLeaderboard();
 
-            this.openOverlay(
-                "LEADERBOARD",
-                board.length
-                    ? board.map(
-                          (entry, i) =>
-                              `${i + 1}   ${entry.initials}   ${formatScore(entry.score).padStart(9, " ")}   WAVE ${formatWave(entry.wave)}`
-                      )
-                    : ["NO RUNS RECORDED YET."]
-            );
+            this.openOverlay("LEADERBOARD", cached.length ? this.boardLines(cached) : ["LOADING…"]);
+            this.overlayKind = "leaderboard";
+
+            void fetchLeaderboard(10).then((entries) => {
+                if (!this.scene.isActive() || this.overlayKind !== "leaderboard") {
+                    return;
+                }
+
+                this.applyBoard(entries ?? cached);
+            });
+
             return;
         }
 
@@ -235,6 +276,9 @@ export class MainMenu extends Scene {
             "ENTER TOGGLES. HITBOXES DRAW THE ARCADE PHYSICS BODIES",
             "OVER THE PLAYFIELD WHILE YOU PLAY.",
         ]);
+
+        //  openOverlay clears the kind, so claim it back afterwards.
+        this.overlayKind = "settings";
 
         //  Inside the settings panel, Enter flips the toggle instead of closing it.
         this.overlay!.setData("onEnter", () => {
@@ -295,5 +339,6 @@ export class MainMenu extends Scene {
 
         this.overlay.destroy(true);
         this.overlay = null;
+        this.overlayKind = null;
     }
 }
