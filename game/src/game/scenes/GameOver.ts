@@ -28,6 +28,8 @@ export class GameOver extends Scene {
     letterTexts: Phaser.GameObjects.Text[] = [];
     underlines: Phaser.GameObjects.Rectangle[] = [];
     hintRow: Phaser.GameObjects.Text[] = [];
+    statusText: Phaser.GameObjects.Text;
+    submitting = false;
 
     constructor() {
         super("GameOver");
@@ -46,6 +48,7 @@ export class GameOver extends Scene {
         this.letterTexts = [];
         this.underlines = [];
         this.hintRow = [];
+        this.submitting = false;
         this.entering = qualifies(this.result.score);
     }
 
@@ -133,6 +136,12 @@ export class GameOver extends Scene {
             this.letterTexts.push(mono(this, x, 488, LETTERS[this.initials[index]], { size: 40 }).setOrigin(0.5, 0));
             this.underlines.push(this.add.rectangle(x, 550, 56, 1, COLOR.ink, 0.25));
         });
+
+        //  Sits between the slots and the RETRY button; empty until we submit.
+        this.statusText = mono(this, WIDTH / 2, 566, "", { size: 11, tracking: 2, color: ink(0.38) }).setOrigin(
+            0.5,
+            0
+        );
 
         this.refreshInitials();
     }
@@ -229,6 +238,10 @@ export class GameOver extends Scene {
     }
 
     commit() {
+        if (this.submitting) {
+            return;
+        }
+
         if (!this.entering) {
             this.scene.start("Game");
             return;
@@ -239,18 +252,37 @@ export class GameOver extends Scene {
             return;
         }
 
-        submitScore({
-            initials: this.initials.map((index) => LETTERS[index]).join(""),
-            score: this.result.score,
-            wave: this.result.wave,
-        });
-
         this.entering = false;
+        this.submitting = true;
 
         //  The slots stay on screen as a record of what was entered, but stop taking input.
         this.letterTexts.forEach((text) => text.setColor(ink(0.7)));
         this.underlines.forEach((underline) => underline.setFillStyle(COLOR.ink, 0.25).setSize(56, 1));
 
+        this.statusText.setText("SENDING…").setColor(ink(0.38));
         this.drawHints();
+
+        void submitScore({
+            initials: this.initials.map((index) => LETTERS[index]).join(""),
+            score: this.result.score,
+            wave: this.result.wave,
+            shots: this.result.shots,
+            hits: this.result.hits,
+        }).then((outcome) => {
+            this.submitting = false;
+
+            //  The scene may be long gone by the time the network answers.
+            if (!this.scene.isActive()) {
+                return;
+            }
+
+            if (outcome.accepted) {
+                this.statusText.setText(`ON THE BOARD · RANK ${outcome.rank ?? "—"}`).setColor(ACCENT);
+            } else if (outcome.offline) {
+                this.statusText.setText("OFFLINE · SAVED ON THIS DEVICE").setColor(ink(0.38));
+            } else {
+                this.statusText.setText("NOT A TOP 100 RUN").setColor(ink(0.38));
+            }
+        });
     }
 }

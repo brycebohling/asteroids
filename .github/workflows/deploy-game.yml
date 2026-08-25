@@ -1,0 +1,49 @@
+name: Build and deploy the game to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['game/**', '.github/workflows/deploy-game.yml']
+  workflow_dispatch:
+
+# Avoid overlapping deploys racing each other.
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: game
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: game/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build game
+        run: npm run build-nolog
+
+      # The Pages project itself (plus custom domain and DNS) is owned by
+      # Terraform in the cf-infra repo — this workflow only deploys builds.
+      # --branch=main marks the deployment as production; custom domains
+      # serve production deployments only.
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: game
+          command: pages deploy dist --project-name=asteroids --branch=main

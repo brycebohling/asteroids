@@ -1,0 +1,50 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "asteroids-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-25",
+  "workers_dev": false,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+
+  // More specific than leaderboard-api's `api.brycebohling.com/*`, so
+  // Cloudflare routes /asteroids/* here and leaves the rest alone. No DNS
+  // record and no Terraform change: the hostname already resolves.
+  "routes": [
+    {
+      "pattern": "api.brycebohling.com/asteroids/*",
+      "zone_name": "brycebohling.com"
+    }
+  ],
+
+  // The existing leaderboard database — a new table, not a new database, so
+  // cf-infra's Terraform stays untouched.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "leaderboard",
+      "database_id": "878f0223-e06e-4ddc-8cc0-af6427c37e24"
+    }
+  ],
+
+  // Free, storage-less, per-IP counters. `period` accepts only 10 or 60.
+  "ratelimits": [
+    {
+      "name": "SUBMIT_LIMIT",
+      "namespace_id": "1001",
+      "simple": { "limit": 5, "period": 60 }
+    },
+    {
+      "name": "READ_LIMIT",
+      "namespace_id": "1002",
+      "simple": { "limit": 30, "period": 60 }
+    }
+  ],
+
+  "vars": {
+    // Comma-separated extra CORS origins, e.g. a *.pages.dev preview URL.
+    "EXTRA_ORIGINS": ""
+  }
+}
