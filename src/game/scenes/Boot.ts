@@ -1,22 +1,33 @@
 import { Scene } from "phaser";
+import { COLOR, HEIGHT, WIDTH, cornerCaption, nebula, shipMark } from "../ui/theme";
 
 export class Boot extends Scene {
     constructor() {
         super("Boot");
     }
 
-    preload() {
-        //  The Boot Scene is typically used to load in any assets you require for your Preloader, such as a game logo or background.
-        //  The smaller the file size of the assets, the better, as the Boot Scene itself has no preloader.
-
-        this.load.image("background", "assets/bg.png");
-        this.load.svg("ship", "assets/ship.svg", { width: 60, height: 45 });
-        this.load.svg("asteroid0", "assets/asteroid0.svg", { width: 30, height: 30 });
-        this.load.svg("asteroid1", "assets/asteroid1.svg", { width: 60, height: 60 });
-        this.load.svg("asteroid2", "assets/asteroid2.svg", { width: 90, height: 90 });
-    }
-
     create() {
-        this.scene.start("Preloader");
+        this.cameras.main.setBackgroundColor(COLOR.space);
+
+        nebula(this, WIDTH / 2, HEIGHT * 0.45, 700, 500, COLOR.nebula, 0.2);
+
+        shipMark(this, WIDTH / 2, HEIGHT / 2, 13, 30, COLOR.ink, 0.28);
+
+        cornerCaption(this, "BOOT", 0.22);
+
+        //  Canvas text doesn't trigger a webfont fetch on its own, so ask for the
+        //  weights the scenes use and let the boot frame double as the font wait.
+        const faces = [
+            "200 64px Manrope",
+            "300 26px Manrope",
+            "400 26px Manrope",
+            "300 92px 'IBM Plex Mono'",
+            "400 22px 'IBM Plex Mono'",
+        ];
+
+        Promise.all(faces.map((face) => document.fonts.load(face)))
+            .then(() => document.fonts.ready)
+            .catch(() => undefined)
+            .then(() => this.scene.start("Preloader"));
     }
 }
