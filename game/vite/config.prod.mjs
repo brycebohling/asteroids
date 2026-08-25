@@ -22,9 +22,10 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                manualChunks: {
-                    phaser: ['phaser']
-                }
+                // rolldown-vite requires a function here; the object form the
+                // Phaser template shipped fails with "manualChunks is not a
+                // function" at build time.
+                manualChunks: (id) => (id.includes('node_modules/phaser') ? 'phaser' : undefined)
             }
         },
         minify: 'terser',
